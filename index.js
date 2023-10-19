@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ListSearchIndexesCursor, ObjectId } = require('mongodb');
 const app= express();
 const port = process .env .PORT || 5001;
 
@@ -31,6 +31,49 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const database = client.db("carproductDB");
+    const productCollection = database.collection("haiku");
+    
+   
+  app.get("/products", async(req, res)=>{
+    const result = await productCollection.find().toArray()
+    res.send(result)
+
+  })  
+  //  const carbrand =["Mazda", "Opel"]
+  app.get("/products/:brandname", async(req, res)=>{
+   const brandname = req.params.brandname;
+    const query = { brandname:brandname}
+    const result = await productCollection.find(query).toArray()
+    
+    console.log(result);
+    res.send(result)
+    if ((await productCollection.countDocuments(query)) === 0) {
+      res.send("No documents found!");
+    }
+  })
+  
+
+  app.get("/products/1/:id", async(req, res)=>{
+    const id = req.params.id
+    const query = {_id: new ObjectId(id)}
+    const result = await productCollection.find(query).toArray()
+    console.log(result);
+    res.send(result)
+  })
+
+
+  app.post("/products", async(req, res)=>{
+    const products = req.body
+    const result= await productCollection.insertOne(products)
+    console.log(result);
+    res.send(result)
+  })
+
+
+
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
