@@ -33,13 +33,20 @@ async function run() {
     await client.connect();
     const database = client.db("carproductDB");
     const productCollection = database.collection("haiku");
-    
+    const cartUserCollection = database.collection("Cart")
    
   app.get("/products", async(req, res)=>{
     const result = await productCollection.find().toArray()
     res.send(result)
 
   })  
+
+  app.get("/cart", async(req, res)=>{
+    const result = await cartUserCollection.find().toArray()
+    res.send(result)
+
+  }) 
+
   //  const carbrand =["Mazda", "Opel"]
   app.get("/products/:brandname", async(req, res)=>{
    const brandname = req.params.brandname;
@@ -57,10 +64,12 @@ async function run() {
   app.get("/products/1/:id", async(req, res)=>{
     const id = req.params.id
     const query = {_id: new ObjectId(id)}
-    const result = await productCollection.find(query).toArray()
+    const result = await productCollection.findOne(query)
     console.log(result);
     res.send(result)
   })
+
+
 
 
   app.post("/products", async(req, res)=>{
@@ -71,7 +80,34 @@ async function run() {
   })
 
 
+  app.post("/cart", async(req, res)=>{
+    const carts = req.body
+    const result= await cartUserCollection.insertOne(carts)
+    console.log(result);
+    res.send(result)
+  })
 
+
+
+  app.patch("/products/1/:id", async(req, res)=>{
+    const id = req.params.id;
+    const filter= {_id: new ObjectId(id)}
+    const products= req.body;
+    
+    const updateuser= {
+      $set:{
+        name:products.name,
+        image:products.image,
+        brandname: products.brandname,
+        price:products.price,
+        type:products.type,
+        rating: products.rating
+      },
+    };
+    const result = await productCollection.updateOne(filter,updateuser)
+   res.send(result) 
+  })
+   
 
 
     // Send a ping to confirm a successful connection
