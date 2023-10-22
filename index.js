@@ -30,7 +30,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const database = client.db("carproductDB");
     const productCollection = database.collection("haiku");
     const cartUserCollection = database.collection("Cart")
@@ -47,17 +47,33 @@ async function run() {
 
   }) 
 
+  app.get("/cart/:id", async(req, res)=>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const result = await cartUserCollection.findOne(query)
+    console.log(result);
+    res.send(result)
+  })
+
+  app.delete("/cart/:id", async(req, res)=>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const result = await cartUserCollection.deleteOne(query)
+    console.log(result);
+    res.send(result)
+  })
+
   //  const carbrand =["Mazda", "Opel"]
   app.get("/products/:brandname", async(req, res)=>{
    const brandname = req.params.brandname;
     const query = { brandname:brandname}
     const result = await productCollection.find(query).toArray()
-    
-    console.log(result);
-    res.send(result)
     if ((await productCollection.countDocuments(query)) === 0) {
       res.send("No documents found!");
     }
+    console.log(result);
+    res.send(result)
+    
   })
   
 
